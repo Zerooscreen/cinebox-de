@@ -26,19 +26,17 @@ const ROWS = {
   ],
 };
 
-// ---------- SEO-Titel & Beschreibung (gleiches Muster für ALLE Detailseiten) ----------
+// ---------- SEO (ALLE Detailseiten verwenden dasselbe Muster) ----------
 function seoTitle(kind, title, year) {
-  const label = kind === 'movie' ? 'Film' : 'Serie';
-  const y = year || 'Jahr unbekannt';
-  return `[${label}] ${title} (${y}) Handlung, Bewertung, Besetzung & Trailer im Überblick`;
+  const y = year || new Date().getFullYear();
+  return `${title} (${y}) Ganzer Film Deutsch Stream Online anschauen`;
 }
 
-function seoDescription(title, year, genreNames) {
-  const yearPart = year ? `Jahr ${year}, ` : '';
-  const genrePart = genreNames ? `Genre ${genreNames}, ` : '';
-  return `Handlung, Besetzung, Bewertung und offizieller Trailer zu ${title} auf CineBox. ${genrePart}${yearPart}alle Infos im Überblick.`;
-}
+function seoDescription(title, year) {
+  const y = year || new Date().getFullYear();
 
+  return `${title} (${y}) Ganzer Film Deutsch Stream Online anschauen. Sehen Sie Trailer, Handlung, Besetzung, Bewertungen und aktuelle Informationen kostenlos auf CineBox.`;
+}
 // ---------- HOME (/, /movie, /tv) ----------
 async function renderHome(req, res, tab) {
   try {
@@ -114,12 +112,12 @@ app.get('/movie/:id/:slug?', async (req, res) => {
       <div class="detail-hero">
         <div class="hero-bg" style="background-image:url('${img(data.backdrop_path, 'original')}')"></div>
         <div class="hero-fade"></div>
-        <div class="detail-poster"><img src="${img(data.poster_path)}" alt="Poster ${escapeHtml(data.title)}"></div>
+        <div class="detail-poster"><img src="${img(data.poster_path)}"alt="${escapeHtml(data.title)} (${(data.release_date || '').slice(0,4)}) Ganzer Film Deutsch Stream Online anschauen"> 
+        </div>
         <div class="detail-info">
           <div class="detail-eyebrow">Film</div>
-          <h1 class="detail-title">${escapeHtml(data.title)}</h1>
-          <div class="detail-orig">${escapeHtml(data.original_title)} · ${(data.release_date || '').slice(0, 4) || 'Jahr unbekannt'}</div>
-          ${data.tagline ? `<div class="tagline">"${escapeHtml(data.tagline)}"</div>` : ''}
+          <h1 class="detail-title">${escapeHtml(data.title)} (${(data.release_date || '').slice(0,4)}) Ganzer Film Deutsch Stream Online anschauen </h1>
+          <div class="detail-orig"> Ganzer Film kostenlos online ansehen • HD Stream • Deutsch • ${(data.release_date || '').slice(0,4)}
           <div class="detail-meta">
             <span class="m-item star">★ ${data.vote_average ? data.vote_average.toFixed(1) : '-'} / 10</span>
             <span class="m-item">${runtime}</span>
@@ -176,9 +174,9 @@ app.get('/tv/:id/:slug?', async (req, res) => {
     const seasons = (data.seasons || []).filter(s => s.season_number >= 0);
     const seasonsHtml = seasons.map(s => `
       <div class="season-item" data-season="${s.season_number}" data-tv="${id}">
-        <div class="season-head">
-          <img src="${img(s.poster_path, 'w92')}" alt="${escapeHtml(s.name)}">
-          <div>
+        <div class="detail-poster">
+       <img src="${img(data.poster_path)}"alt="${escapeHtml(data.name)} (${(data.first_air_date || '').slice(0,4)}) Ganzer Film Deutsch Stream Online anschauen">
+        </div>
             <div class="s-title">${escapeHtml(s.name)}</div>
             <div class="s-meta">${s.episode_count} Episoden · ${(s.air_date || '').slice(0, 4) || 'Jahr unbekannt'}</div>
           </div>
@@ -196,8 +194,7 @@ app.get('/tv/:id/:slug?', async (req, res) => {
         <div class="detail-poster"><img src="${img(data.poster_path)}" alt="Poster ${escapeHtml(data.name)}"></div>
         <div class="detail-info">
           <div class="detail-eyebrow">Serie</div>
-          <h1 class="detail-title">${escapeHtml(data.name)}</h1>
-          <div class="detail-orig">${escapeHtml(data.original_name)} · ${(data.first_air_date || '').slice(0, 4) || 'Jahr unbekannt'}</div>
+          <h1 class="detail-title">${escapeHtml(data.name)} (${(data.first_air_date || '').slice(0,4)}) Ganzer Film Deutsch Stream Online anschauen </h1>
           ${data.tagline ? `<div class="tagline">"${escapeHtml(data.tagline)}"</div>` : ''}
           <div class="detail-meta">
             <span class="m-item star">★ ${data.vote_average ? data.vote_average.toFixed(1) : '-'} / 10</span>

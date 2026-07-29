@@ -94,11 +94,12 @@ app.get('/tv', (req, res) => renderHome(req, res, 'tv'));
 app.get('/movie/:id/:slug?', async (req, res) => {
   const { id } = req.params;
   try {
-    const [data, credits, videos] = await Promise.all([
-      tmdb(`/movie/${id}`),
-      tmdb(`/movie/${id}/credits`),
-      tmdb(`/movie/${id}/videos`),
-    ]);
+    const [data, credits, videos, similar] = await Promise.all([
+  tmdb(`/movie/${id}`),
+  tmdb(`/movie/${id}/credits`),
+  tmdb(`/movie/${id}/videos`),
+  tmdb(`/movie/${id}/similar`)
+]);
     const correctSlug = slugify(data.title);
     if (req.params.slug !== correctSlug) {
       return res.redirect(301, `/movie/${id}/${encodeURIComponent(correctSlug)}`);
@@ -204,7 +205,30 @@ app.get('/tv/:id/:slug?', async (req, res) => {
           ${genreRow(data.genres)}
         </div>
       </div>
-      <div class="section-block"><h3>Handlung</h3><div class="bio-text">${escapeHtml(data.overview) || 'Keine Handlung verfügbar.'}</div></div>
+     <div class="section-block">
+  <h3>Besetzung</h3>
+  ${castGrid(credits)}
+</div>
+
+${
+  similar?.results?.length
+    ? `
+<div class="section-block">
+  <h3>Ähnliche Filme</h3>
+  <div class="poster-grid">
+    ${similar.results
+      .slice(0, 8)
+      .map(item => posterCard(item, 'movie'))
+      .join('')}
+  </div>
+</div>
+`
+    : ''
+}
+
+${sideBannerAd()}
+
+${movieJsonLd(data, `${SITE_URL}/movie/${id}/${encodeURIComponent(correctSlug)}`)}
       ${nativeBannerAd()}
       <div class="section-block"><h3>Trailer</h3>${trailerBlock(videos)}</div>
       <div class="section-block"><h3>Besetzung</h3>${castGrid(credits)}</div>

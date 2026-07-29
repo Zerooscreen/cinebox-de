@@ -6,7 +6,7 @@ const { head, layout, posterCard, genreRow, trailerBlock, castGrid, escapeHtml, 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// TODO: nach dem Deploy auf Railway die finale Domain hier eintragen
+// Domain resmi situs — dipakai untuk sitemap, canonical, dan Open Graph URL
 const SITE_URL = process.env.SITE_URL || 'https://cinebox-de.up.railway.app';
 
 app.use(express.static(path.join(__dirname, 'public')));

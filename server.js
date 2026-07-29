@@ -126,12 +126,26 @@ app.get('/movie/:id/:slug?', async (req, res) => {
           ${genreRow(data.genres)}
         </div>
       </div>
-      <div class="section-block"><h3>Handlung</h3><div class="bio-text">${escapeHtml(data.overview) || 'Keine Handlung verfügbar.'}</div></div>
-      ${nativeBannerAd()}
-      <div class="section-block"><h3>Trailer</h3>${trailerBlock(videos)}</div>
-      <div class="section-block"><h3>Besetzung</h3>${castGrid(credits)}</div>
-      ${sideBannerAd()}
-      ${movieJsonLd(data, `${SITE_URL}/movie/${id}/${encodeURIComponent(correctSlug)}`)}
+     <div class="section-block">
+  <h3>Besetzung</h3>
+  ${castGrid(credits)}
+</div>
+
+${similar && similar.results && similar.results.length ? `
+<div class="section-block">
+  <h3>Ähnliche Filme</h3>
+  <div class="poster-grid">
+    ${similar.results
+      .slice(0, 8)
+      .map(item => posterCard(item, 'movie'))
+      .join('')}
+  </div>
+</div>
+` : ''}
+
+${sideBannerAd()}
+
+${movieJsonLd(data, `${SITE_URL}/movie/${id}/${encodeURIComponent(correctSlug)}`)}
     `;
 
     const headHtml = head({

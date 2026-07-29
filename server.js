@@ -28,15 +28,11 @@ const ROWS = {
 
 // ---------- SEO-Titel & Beschreibung (gleiches Muster für ALLE Detailseiten) ----------
 function seoTitle(kind, title, year) {
-  const label = kind === 'movie' ? 'Film' : 'Serie';
-  const y = year || 'Jahr unbekannt';
-  return `[${label}] ${title} (${y}) Handlung, Bewertung, Besetzung & Trailer im Überblick`;
+  return `${title} (${year || '2026'}) Ganzer Film Deutsch Stream Online anschauen`;
 }
 
 function seoDescription(title, year, genreNames) {
-  const yearPart = year ? `Jahr ${year}, ` : '';
-  const genrePart = genreNames ? `Genre ${genreNames}, ` : '';
-  return `Handlung, Besetzung, Bewertung und offizieller Trailer zu ${title} auf CineBox. ${genrePart}${yearPart}alle Infos im Überblick.`;
+  return `${title} (${year || '2026'}) Ganzer Film Deutsch Stream Online anschauen. Kostenlos ansehen in HD. Trailer, Handlung, Besetzung, Bewertung und aktuelle Informationen auf CineBox.`;
 }
 
 // ---------- HOME (/, /movie, /tv) ----------

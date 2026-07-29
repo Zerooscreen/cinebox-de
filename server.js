@@ -113,8 +113,8 @@ app.get('/movie/:id/:slug?', async (req, res) => {
         <div class="detail-poster"><img src="${img(data.poster_path)}" alt="Poster ${escapeHtml(data.title)}"></div>
         <div class="detail-info">
           <div class="detail-eyebrow">Film</div>
-          <h1 class="detail-title">${escapeHtml(data.title)}</h1>
-          <div class="detail-orig">${escapeHtml(data.original_title)} · ${(data.release_date || '').slice(0, 4) || 'Jahr unbekannt'}</div>
+          <h1 class="detail-title"> ${escapeHtml(data.title)} (${(data.release_date || '').slice(0,4)}) Ganzer Film Deutsch Stream Online anschauen </h1>
+          <div class="detail-orig"> Kostenlos online ansehen • HD Stream • Deutsch • ${(data.release_date || '').slice(0,4)} </div>
           ${data.tagline ? `<div class="tagline">"${escapeHtml(data.tagline)}"</div>` : ''}
           <div class="detail-meta">
             <span class="m-item star">★ ${data.vote_average ? data.vote_average.toFixed(1) : '-'} / 10</span>

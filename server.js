@@ -128,6 +128,19 @@ app.get('/movie/:id/:slug?', async (req, res) => {
       </div>
      <div class="section-block">
   <h3>Besetzung</h3>
+  <div class="section-block">
+  <h3>Handlung</h3>
+  <div class="bio-text">
+    ${escapeHtml(data.overview) || 'Keine Handlung verfügbar.'}
+  </div>
+</div>
+
+${nativeBannerAd()}
+
+<div class="section-block" id="trailer">
+  <h3>Trailer</h3>
+  ${trailerBlock(videos)}
+</div>
   ${castGrid(credits)}
 </div>
 

@@ -134,7 +134,7 @@ app.get('/movie/:id/:slug?', async (req, res) => {
 ${similar && similar.results && similar.results.length ? `
 <div class="section-block">
   <h3>Ähnliche Filme</h3>
-  <div class="poster-grid">
+  <div class="grid">
     ${similar.results
       .slice(0, 8)
       .map(item => posterCard(item, 'movie'))

@@ -100,6 +100,7 @@ app.get('/movie/:id/:slug?', async (req, res) => {
   tmdb(`/movie/${id}/videos`),
   tmdb(`/movie/${id}/similar`)
 ]);
+    console.log("SIMILAR:", similar);
     const correctSlug = slugify(data.title);
     if (req.params.slug !== correctSlug) {
       return res.redirect(301, `/movie/${id}/${encodeURIComponent(correctSlug)}`);

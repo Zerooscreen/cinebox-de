@@ -123,12 +123,19 @@ app.get('/movie/:id/:slug?', async (req, res) => {
             <span class="m-item">${runtime}</span>
             <span class="m-item">${escapeHtml(data.status || '')}</span>
           </div>
-          ${genreRow(data.genres)}
-        </div>
-      </div>
-     <div class="section-block">
-  <h3>Besetzung</h3>
-  <div class="section-block">
+   ${genreRow(data.genres)}
+
+<div class="detail-nav">
+  <a href="#handlung">Handlung</a>
+  <a href="#trailer">Trailer</a>
+  <a href="#cast">Besetzung</a>
+  <a href="#similar">Ähnliche Filme</a>
+</div>
+
+</div>
+</div>
+
+<div class="section-block" id="handlung">
   <h3>Handlung</h3>
   <div class="bio-text">
     ${escapeHtml(data.overview) || 'Keine Handlung verfügbar.'}
@@ -141,11 +148,14 @@ ${nativeBannerAd()}
   <h3>Trailer</h3>
   ${trailerBlock(videos)}
 </div>
+
+<div class="section-block" id="cast">
+  <h3>Besetzung</h3>
   ${castGrid(credits)}
 </div>
 
 ${similar && similar.results && similar.results.length ? `
-<div class="section-block">
+<div class="section-block" id="similar">
   <h3>Ähnliche Filme</h3>
   <div class="grid">
     ${similar.results

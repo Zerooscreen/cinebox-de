@@ -149,3 +149,14 @@ html{
 .detail-nav a{
     padding:6px 0;
 }
+
+html{
+    scroll-behavior:smooth;
+}
+
+#handlung,
+#trailer,
+#cast,
+#similar{
+    scroll-margin-top:90px;
+}

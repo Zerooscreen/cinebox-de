@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://cinebox-de.up.railway.app/sitemap.xml

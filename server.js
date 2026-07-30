@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { tmdb, img, slugify } = require('./lib/tmdb');
-const { head, layout, posterCard, genreRow, trailerBlock, castGrid, escapeHtml, movieJsonLd, tvJsonLd, sideBannerAd, nativeBannerAd, DEFAULT_TITLE, DEFAULT_DESC, SITE_NAME } = require('./lib/render');
+const { head, layout, posterCard, genreRow, trailerBlock, castGrid, mockPlayerBlock, escapeHtml, movieJsonLd, tvJsonLd, personJsonLd, sideBannerAd, nativeBannerAd, DEFAULT_TITLE, DEFAULT_DESC, SITE_NAME } = require('./lib/render');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,7 +26,7 @@ const ROWS = {
   ],
 };
 
-// ---------- SEO-Titel & Beschreibung (gleiches Muster für ALLE Detailseiten) ----------
+// ---------- SEO-Titel & Beschreibung ----------
 function seoTitle(kind, title, year) {
   return `${title} (${year || '2026'}) Ganzer Film Deutsch Stream Online anschauen`;
 }
@@ -107,7 +107,6 @@ app.get('/movie/:id/:slug?', async (req, res) => {
     }
 
     const runtime = data.runtime ? `${Math.floor(data.runtime / 60)} Std. ${data.runtime % 60} Min.` : 'Unbekannt';
-    
     const bodyHtml = `
       <a class="back-btn" href="/movie">← Zurück</a>
       <div class="detail-hero">
@@ -126,21 +125,22 @@ app.get('/movie/:id/:slug?', async (req, res) => {
           </div>
           ${genreRow(data.genres)}
 
-          <!-- Tombol Play Utama -->
-          <div class="hero-actions">
-            <a href="#stream-player" class="btn-play-stream">
+          <!-- Tombol CTA Utama -->
+          <div class="cta-group">
+            <a href="#stream-player" class="btn-stream-hd">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              Streamen in HD
+              <span>Stream HD</span>
             </a>
-            <a href="#trailer" class="btn-trailer-link">
-              Trailer ansehen
+            <a href="#trailer" class="btn-trailer-direct">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 8.64L15.27 12 10 15.36V8.64M8 5v14l11-7L8 5z"/></svg>
+              <span>Trailer ansehen</span>
             </a>
           </div>
 
-          <!-- Navigasi Menu Detail -->
+          <!-- Menu Navigasi Anchor -->
           <div class="detail-nav">
+            <a href="#stream-player">Online Streamen</a>
             <a href="#handlung">Handlung</a>
-            <a href="#stream-player">Player</a>
             <a href="#trailer">Trailer</a>
             <a href="#cast">Besetzung</a>
             <a href="#similar">Ähnliche Filme</a>
@@ -148,21 +148,7 @@ app.get('/movie/:id/:slug?', async (req, res) => {
         </div>
       </div>
 
-      <!-- Fake Stream Player Mockup (Optimal untuk Adsterra CTR) -->
-      <div class="section-block" id="stream-player">
-        <h3>Online Streamen</h3>
-        <div class="fake-player-container">
-          <img src="${img(data.backdrop_path, 'original')}" class="player-backdrop" alt="${escapeHtml(data.title)}">
-          <div class="player-overlay">
-            <a href="#trailer" class="play-trigger">
-              <div class="play-btn-circle">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              </div>
-            </a>
-            <p class="player-hint">Klicken Sie zum Starten des HD-Streams</p>
-          </div>
-        </div>
-      </div>
+      ${mockPlayerBlock(data.backdrop_path || data.poster_path, data.title)}
 
       <div class="section-block" id="handlung">
         <h3>Handlung</h3>
@@ -187,12 +173,16 @@ app.get('/movie/:id/:slug?', async (req, res) => {
       <div class="section-block" id="similar">
         <h3>Ähnliche Filme</h3>
         <div class="grid">
-          ${similar.results.slice(0, 8).map(item => posterCard(item, 'movie')).join('')}
+          ${similar.results
+            .slice(0, 8)
+            .map(item => posterCard(item, 'movie'))
+            .join('')}
         </div>
       </div>
       ` : ''}
 
       ${sideBannerAd()}
+
       ${movieJsonLd(data, `${SITE_URL}/movie/${id}/${encodeURIComponent(correctSlug)}`)}
     `;
 
@@ -207,7 +197,12 @@ app.get('/movie/:id/:slug?', async (req, res) => {
     res.send(layout({ headHtml, bodyHtml, activeTab: 'movie' }));
   } catch (e) {
     res.status(404).send(layout({
-      headHtml: head({ title: 'Film nicht gefunden · CineBox', description: DEFAULT_DESC, url: `${SITE_URL}/movie/${id}`, robots: 'noindex, nofollow' }),
+      headHtml: head({
+        title: 'Film nicht gefunden · CineBox',
+        description: DEFAULT_DESC,
+        url: `${SITE_URL}/movie/${id}`,
+        robots: 'noindex, nofollow',
+      }),
       bodyHtml: `<a class="back-btn" href="/movie">← Zurück</a><div class="empty">Dieser Film wurde nicht gefunden.</div>`,
       activeTab: 'movie',
     }));
@@ -222,9 +217,8 @@ app.get('/tv/:id/:slug?', async (req, res) => {
       tmdb(`/tv/${id}`),
       tmdb(`/tv/${id}/credits`),
       tmdb(`/tv/${id}/videos`),
-      tmdb(`/tv/${id}/similar`)
+      tmdb(`/tv/${id}/similar`),
     ]);
-
     const correctSlug = slugify(data.name);
     if (req.params.slug !== correctSlug) {
       return res.redirect(301, `/tv/${id}/${encodeURIComponent(correctSlug)}`);
@@ -264,14 +258,22 @@ app.get('/tv/:id/:slug?', async (req, res) => {
           </div>
           ${genreRow(data.genres)}
 
-          <div class="hero-actions">
-            <a href="#seasons" class="btn-play-stream">
+          <!-- Tombol CTA Utama -->
+          <div class="cta-group">
+            <a href="#stream-player" class="btn-stream-hd">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-              Episoden Streamen
+              <span>Stream HD</span>
+            </a>
+            <a href="#trailer" class="btn-trailer-direct">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10 8.64L15.27 12 10 15.36V8.64M8 5v14l11-7L8 5z"/></svg>
+              <span>Trailer ansehen</span>
             </a>
           </div>
 
+          <!-- Menu Navigasi Anchor -->
           <div class="detail-nav">
+            <a href="#stream-player">Online Streamen</a>
+            <a href="#handlung">Handlung</a>
             <a href="#trailer">Trailer</a>
             <a href="#cast">Besetzung</a>
             <a href="#seasons">Staffeln</a>
@@ -280,11 +282,25 @@ app.get('/tv/:id/:slug?', async (req, res) => {
         </div>
       </div>
 
+      ${mockPlayerBlock(data.backdrop_path || data.poster_path, data.name)}
+
+      <div class="section-block" id="handlung">
+        <h3>Handlung</h3>
+        <div class="bio-text">${escapeHtml(data.overview) || 'Keine Handlung verfügbar.'}</div>
+      </div>
+
       ${nativeBannerAd()}
-      
-      <div class="section-block" id="trailer"><h3>Trailer</h3>${trailerBlock(videos)}</div>
-      <div class="section-block" id="cast"><h3>Besetzung</h3>${castGrid(credits)}</div>
-      
+
+      <div class="section-block" id="trailer">
+        <h3>Trailer</h3>
+        ${trailerBlock(videos)}
+      </div>
+
+      <div class="section-block" id="cast">
+        <h3>Besetzung</h3>
+        ${castGrid(credits)}
+      </div>
+
       <div class="section-block" id="seasons">
         <h3>Staffeln &amp; Episoden</h3>
         <div class="season-list" id="season-list">${seasonsHtml}</div>
@@ -294,7 +310,10 @@ app.get('/tv/:id/:slug?', async (req, res) => {
       <div class="section-block" id="similar">
         <h3>Ähnliche Serien</h3>
         <div class="grid">
-          ${similar.results.slice(0, 8).map(item => posterCard(item, 'tv')).join('')}
+          ${similar.results
+            .slice(0, 8)
+            .map(item => posterCard(item, 'tv'))
+            .join('')}
         </div>
       </div>
       ` : ''}
@@ -314,9 +333,91 @@ app.get('/tv/:id/:slug?', async (req, res) => {
     res.send(layout({ headHtml, bodyHtml, activeTab: 'tv' }));
   } catch (e) {
     res.status(404).send(layout({
-      headHtml: head({ title: 'Serie nicht gefunden · CineBox', description: DEFAULT_DESC, url: `${SITE_URL}/tv/${id}`, robots: 'noindex, nofollow' }),
+      headHtml: head({
+        title: 'Serie nicht gefunden · CineBox',
+        description: DEFAULT_DESC,
+        url: `${SITE_URL}/tv/${id}`,
+        robots: 'noindex, nofollow',
+      }),
       bodyHtml: `<a class="back-btn" href="/tv">← Zurück</a><div class="empty">Diese Serie wurde nicht gefunden.</div>`,
       activeTab: 'tv',
+    }));
+  }
+});
+
+// ---------- PERSON / AKTOR: /person/:id/:slug? ----------
+app.get('/person/:id/:slug?', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [person, credits] = await Promise.all([
+      tmdb(`/person/${id}`),
+      tmdb(`/person/${id}/combined_credits`)
+    ]);
+
+    const correctSlug = slugify(person.name);
+    if (req.params.slug !== correctSlug) {
+      return res.redirect(301, `/person/${id}/${encodeURIComponent(correctSlug)}`);
+    }
+
+    const knownFor = (credits.cast || [])
+      .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
+      .slice(0, 12);
+
+    const knownCardsHtml = knownFor
+      .map(item => posterCard(item, item.media_type === 'tv' ? 'tv' : 'movie'))
+      .join('');
+
+    const birthday = person.birthday ? person.birthday : 'Unbekannt';
+    const placeOfBirth = person.place_of_birth ? person.place_of_birth : 'Unbekannt';
+
+    const bodyHtml = `
+      <a class="back-btn" onclick="history.back()" style="cursor:pointer;">← Zurück</a>
+      <div class="person-header">
+        <div class="person-poster">
+          <img src="${img(person.profile_path, 'h630')}" alt="${escapeHtml(person.name)}">
+        </div>
+        <div class="person-info">
+          <h1 class="person-name">${escapeHtml(person.name)}</h1>
+          <div class="person-meta">
+            <span>Geboren: ${escapeHtml(birthday)}</span>
+            <span>•</span>
+            <span>Geburtsort: ${escapeHtml(placeOfBirth)}</span>
+          </div>
+          <div class="person-bio">
+            ${escapeHtml(person.biography) || 'Keine Biografie verfügbar.'}
+          </div>
+        </div>
+      </div>
+
+      ${nativeBannerAd()}
+
+      <div class="section-block">
+        <h3>Bekannt für (Filme & Serien)</h3>
+        <div class="grid">${knownCardsHtml || '<div class="empty">Keine Werke gefunden.</div>'}</div>
+      </div>
+
+      ${sideBannerAd()}
+      ${personJsonLd(person, `${SITE_URL}/person/${id}/${encodeURIComponent(correctSlug)}`)}
+    `;
+
+    const headHtml = head({
+      title: `${person.name} - Filme, Biografie & Steckbrief | CineBox`,
+      description: `${person.name} Biografie, Geburtsdatum, Bekannte Filme und Serien im Stream auf CineBox.`,
+      url: `${SITE_URL}/person/${id}/${encodeURIComponent(correctSlug)}`,
+      image: img(person.profile_path, 'w780'),
+    });
+
+    res.send(layout({ headHtml, bodyHtml, activeTab: 'movie' }));
+  } catch (e) {
+    res.status(404).send(layout({
+      headHtml: head({
+        title: 'Person nicht gefunden · CineBox',
+        description: DEFAULT_DESC,
+        url: `${SITE_URL}/person/${id}`,
+        robots: 'noindex, nofollow',
+      }),
+      bodyHtml: `<a class="back-btn" href="/movie">← Zurück</a><div class="empty">Diese Person wurde nicht gefunden.</div>`,
+      activeTab: 'movie',
     }));
   }
 });
@@ -328,14 +429,14 @@ app.get('/api/search', async (req, res) => {
     if (!q.trim()) return res.json({ results: [] });
     const data = await tmdb('/search/multi', { query: q });
     const results = data.results
-      .filter(r => r.media_type === 'movie' || r.media_type === 'tv')
+      .filter(r => r.media_type === 'movie' || r.media_type === 'tv' || r.media_type === 'person')
       .slice(0, 8)
       .map(r => ({
         id: r.id,
         type: r.media_type,
         title: r.title || r.name,
         year: (r.release_date || r.first_air_date || '').slice(0, 4),
-        poster: img(r.poster_path, 'w92'),
+        poster: img(r.poster_path || r.profile_path, 'w92'),
         slug: slugify(r.title || r.name),
       }));
     res.json({ results });

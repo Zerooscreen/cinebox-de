@@ -160,3 +160,132 @@ html{
 #similar{
     scroll-margin-top:90px;
 }
+
+/* Enable Smooth Scrolling & Fixed Header Offset */
+html {
+  scroll-behavior: smooth;
+}
+
+.section-block {
+  scroll-margin-top: 80px;
+}
+
+/* Hero Action Buttons */
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  margin: 18px 0;
+  align-items: center;
+}
+
+.btn-play-stream {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #e50914;
+  color: #ffffff;
+  padding: 10px 22px;
+  font-weight: 700;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-play-stream:hover {
+  background-color: #f6121d;
+  transform: translateY(-2px);
+}
+
+.btn-trailer-link {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 10px 18px;
+  font-weight: 500;
+  border-radius: 6px;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-trailer-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Detail Nav Styling */
+.detail-nav {
+  display: flex;
+  gap: 16px;
+  margin-top: 15px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 15px;
+}
+
+.detail-nav a {
+  color: #a3a3a3;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.detail-nav a:hover {
+  color: #ffffff;
+}
+
+/* Fake Player Styling */
+.fake-player-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 480px;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-top: 10px;
+}
+
+.player-backdrop {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+}
+
+.player-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%);
+}
+
+.play-btn-circle {
+  width: 76px;
+  height: 76px;
+  background-color: rgba(229, 9, 20, 0.9);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding-left: 4px;
+  box-shadow: 0 0 25px rgba(229, 9, 20, 0.6);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.play-trigger:hover .play-btn-circle {
+  transform: scale(1.12);
+  background-color: #f6121d;
+}
+
+.player-hint {
+  margin-top: 14px;
+  color: #e5e5e5;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}

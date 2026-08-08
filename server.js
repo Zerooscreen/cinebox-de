@@ -90,9 +90,9 @@ app.get('/movie/:id/:slug?', async (req, res) => {
   try {
     const [data, credits, videos, similar] = await Promise.all([
       tmdb(`/movie/${id}`),
-      tmdb(`/movie/${id}/credits`),
-      tmdb(`/movie/${id}/videos`),
-      tmdb(`/movie/${id}/similar`),
+      tmdb(`/movie/${id}/credits`).catch(() => ({ cast: [], crew: [] })),
+      tmdb(`/movie/${id}/videos`).catch(() => ({ results: [] })),
+      tmdb(`/movie/${id}/similar`).catch(() => ({ results: [] })),
     ]);
     
     if (!data || !data.id) throw new Error('Movie not found');
@@ -153,9 +153,9 @@ app.get('/tv/:id/:slug?', async (req, res) => {
   try {
     const [data, credits, videos, similar] = await Promise.all([
       tmdb(`/tv/${id}`),
-      tmdb(`/tv/${id}/credits`),
-      tmdb(`/tv/${id}/videos`),
-      tmdb(`/tv/${id}/similar`),
+      tmdb(`/tv/${id}/credits`).catch(() => ({ cast: [], crew: [] })),
+      tmdb(`/tv/${id}/videos`).catch(() => ({ results: [] })),
+      tmdb(`/tv/${id}/similar`).catch(() => ({ results: [] })),
     ]);
 
     if (!data || !data.id) throw new Error('TV show not found');

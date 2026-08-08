@@ -29,7 +29,7 @@ const ROWS = {
 function seoDescription(title, year, genreNames) {
   const yearPart = year ? `${year}, ` : '';
   const genrePart = genreNames ? `Genre ${genreNames}, ` : '';
-  return `Handlung, Besetzung, Bewertung und offizieller Trailer von ${title} auf CineBox. ${genrePart}${yearPart}alle Informationen auf einen Blick.`;
+  return `Handlung, Besetzung, Bewertung und offizieller Trailer von ${title}. ${genrePart}${yearPart}alle Informationen auf einen Blick.`;
 }
 
 async function renderHome(req, res, tab) {
@@ -141,7 +141,7 @@ app.get('/movie/:id/:slug?', async (req, res) => {
     res.send(layout({ headHtml, bodyHtml, activeTab: 'movie' }));
   } catch (e) {
     res.status(404).send(layout({
-      headHtml: head({ title: 'Film nicht gefunden · CineBox', description: DEFAULT_DESC, url: `${SITE_URL}/movie/${id}`, robots: 'noindex, nofollow' }),
+      headHtml: head({ title: 'Film nicht gefunden', description: DEFAULT_DESC, url: `${SITE_URL}/movie/${id}`, robots: 'noindex, nofollow' }),
       bodyHtml: `<a class="back-btn" href="/movie">← Zurück</a><div class="empty">Dieser Film wurde nicht gefunden.</div>`,
       activeTab: 'movie',
     }));
@@ -222,7 +222,7 @@ app.get('/tv/:id/:slug?', async (req, res) => {
     res.send(layout({ headHtml, bodyHtml, activeTab: 'tv' }));
   } catch (e) {
     res.status(404).send(layout({
-      headHtml: head({ title: 'Serie nicht gefunden · CineBox', description: DEFAULT_DESC, url: `${SITE_URL}/tv/${id}`, robots: 'noindex, nofollow' }),
+      headHtml: head({ title: 'Serie nicht gefunden', description: DEFAULT_DESC, url: `${SITE_URL}/tv/${id}`, robots: 'noindex, nofollow' }),
       bodyHtml: `<a class="back-btn" href="/tv">← Zurück</a><div class="empty">Diese Serie wurde nicht gefunden.</div>`,
       activeTab: 'tv',
     }));
@@ -303,5 +303,5 @@ app.get('/robots.txt', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`CineBox-DE läuft auf: http://localhost:${PORT}`);
+  console.log(`ZeroCinema Server running on: ${SITE_URL}`);
 });

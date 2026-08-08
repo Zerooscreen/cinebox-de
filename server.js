@@ -303,10 +303,11 @@ app.get('/robots.txt', (req, res) => {
 });
 
 // Penanganan agar aman untuk Local/Railway (listen) maupun Vercel (module.exports)
-if (process.env.NODE_ENV !== 'production' || process.env.RAILWAY_STATIC_URL || process.env.PORT) {
+if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
     console.log(`ZeroCinema Server running on: ${SITE_URL}`);
   });
 }
 
+// WAJIB ADA untuk Vercel:
 module.exports = app;

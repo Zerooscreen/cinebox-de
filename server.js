@@ -332,7 +332,6 @@ app.get('/sitemap.xml', async (req, res) => {
       tmdb('/tv/top_rated').catch(() => ({ results: [] })),
     ]);
 
-    // Ambil ID aktor dari kredit film/tv populer untuk dimasukkan ke sitemap
     const movieCreditsPromises = (mp.results || []).slice(0, 5).reverse().map(m => tmdb(`/movie/${m.id}/credits`).catch(() => ({ cast: [] })));
     const creditsResults = await Promise.all(movieCreditsPromises);
     const actors = [];
@@ -362,6 +361,7 @@ ${uniq.map(u => `  <url><loc>${u.loc}</loc><lastmod>${today}</lastmod><changefre
     res.status(500).send('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
   }
 });
+
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(`User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 });

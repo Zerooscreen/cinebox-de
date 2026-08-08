@@ -302,12 +302,13 @@ app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(`User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 });
 
-// Penanganan agar aman untuk Local/Railway (listen) maupun Vercel (module.exports)
 if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`ZeroCinema Server running on: ${SITE_URL}`);
+    console.log(`Server running on port ${PORT}`);
   });
 }
 
-// WAJIB ADA untuk Vercel:
-module.exports = app; 
+module.exports = (req, res) => {
+  return app(req, res);
+};

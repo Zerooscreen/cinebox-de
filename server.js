@@ -332,12 +332,23 @@ app.get('/sitemap.xml', async (req, res) => {
       tmdb('/tv/top_rated').catch(() => ({ results: [] })),
     ]);
 
+    // Ambil ID aktor dari kredit film/tv populer untuk dimasukkan ke sitemap
+    const movieCreditsPromises = (mp.results || []).slice(0, 5).reverse().map(m => tmdb(`/movie/${m.id}/credits`).catch(() => ({ cast: [] })));
+    const creditsResults = await Promise.all(movieCreditsPromises);
+    const actors = [];
+    creditsResults.forEach(c => {
+      if (c && c.cast) {
+        c.cast.slice(0, 5).forEach(actor => actors.push(actor));
+      }
+    });
+
     const today = new Date().toISOString().slice(0, 10);
     const urls = [
       { loc: `${SITE_URL}/movie`, priority: '1.0', changefreq: 'daily' },
       { loc: `${SITE_URL}/tv`, priority: '1.0', changefreq: 'daily' },
       ...[...(mp.results || []), ...(mt.results || [])].map(m => ({ loc: `${SITE_URL}/movie/${m.id}/${encodeURIComponent(slugify(m.title) || 'film')}`, priority: '0.7', changefreq: 'weekly' })),
       ...[...(tp.results || []), ...(tt.results || [])].map(t => ({ loc: `${SITE_URL}/tv/${t.id}/${encodeURIComponent(slugify(t.name) || 'serial')}`, priority: '0.7', changefreq: 'weekly' })),
+      ...actors.map(a => ({ loc: `${SITE_URL}/person/${a.id}/${encodeURIComponent(slugify(a.name) || 'actor')}`, priority: '0.5', changefreq: 'weekly' })),
     ];
 
     const uniq = [...new Map(urls.map(u => [u.loc, u])).values()];
@@ -351,7 +362,6 @@ ${uniq.map(u => `  <url><loc>${u.loc}</loc><lastmod>${today}</lastmod><changefre
     res.status(500).send('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
   }
 });
-
 app.get('/robots.txt', (req, res) => {
   res.type('text/plain').send(`User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 });

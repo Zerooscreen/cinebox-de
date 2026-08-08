@@ -1,15 +1,34 @@
 const express = require('express');
 const path = require('path');
 const { tmdb, img, slugify } = require('./lib/tmdb');
-const { head, layout, posterCard, genreRow, trailerBlock, castGrid, mockPlayerBlock, escapeHtml, movieJsonLd, tvJsonLd, personJsonLd, sideBannerAd, nativeBannerAd, DEFAULT_TITLE, DEFAULT_DESC, SITE_NAME } = require('./lib/render');
+const { 
+  head, 
+  layout, 
+  posterCard, 
+  genreRow, 
+  trailerBlock, 
+  castGrid, 
+  mockPlayerBlock, 
+  escapeHtml, 
+  movieJsonLd, 
+  tvJsonLd, 
+  personJsonLd, 
+  sideBannerAd, 
+  nativeBannerAd, 
+  DEFAULT_TITLE, 
+  DEFAULT_DESC, 
+  SITE_NAME 
+} = require('./lib/render');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Domain resmi situs
+// Domain resmi situs dengan www
 const SITE_URL = process.env.SITE_URL || 'https://www.zerocinema.duckdns.org';
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const ROWS = {
   movie: [
@@ -25,15 +44,6 @@ const ROWS = {
     { key: '04', title: 'Laufende Serien', path: '/tv/on_the_air' },
   ],
 };
-
-// ---------- SEO-Titel & Beschreibung ----------
-function seoTitle(kind, title, year) {
-  return `${title} (${year || '2026'}) Ganzer Film Deutsch Stream Online anschauen`;
-}
-
-function seoDescription(title, year, genreNames) {
-  return `${title} (${year || '2026'}) Ganzer Film Deutsch Stream Online anschauen. Kostenlos ansehen in HD. Trailer, Handlung, Besetzung, Bewertung und aktuelle Informationen auf CineBox.`;
-}
 
 // ---------- HOME (/, /movie, /tv) ----------
 async function renderHome(req, res, tab) {
@@ -90,7 +100,7 @@ app.get('/', (req, res) => renderHome(req, res, 'movie'));
 app.get('/movie', (req, res) => renderHome(req, res, 'movie'));
 app.get('/tv', (req, res) => renderHome(req, res, 'tv'));
 
-// ---------- DETAIL PAGES ----------
+// ---------- DETAIL PAGES (MOVIE) ----------
 app.get('/movie/:id/:slug?', async (req, res) => {
   const { id } = req.params;
   try {
@@ -99,6 +109,13 @@ app.get('/movie/:id/:slug?', async (req, res) => {
     ]);
     const correctSlug = slugify(data.title);
     if (req.params.slug !== correctSlug) return res.redirect(301, `/movie/${id}/${encodeURIComponent(correctSlug)}`);
+
+    const headHtml = head({
+        title: `${data.title} (${(data.release_date || '').slice(0,4)}) Ganzer Film Deutsch Stream`,
+        description: data.overview || DEFAULT_DESC,
+        url: `${SITE_URL}/movie/${id}/${correctSlug}`,
+        image: img(data.backdrop_path || data.poster_path, 'w780')
+    });
 
     const bodyHtml = `
       <a class="back-btn" href="/movie">← Zurück</a>
@@ -113,15 +130,18 @@ app.get('/movie/:id/:slug?', async (req, res) => {
         </div>
       </div>
       ${mockPlayerBlock(data.backdrop_path || data.poster_path, data.title)}
-      <div class="section-block" id="handlung"><h3>Handlung</h3><div class="bio-text">${escapeHtml(data.overview)}</div></div>
+      <div class="section-block" id="handlung"><h3>Handlung</h3><div class="bio-text">${escapeHtml(data.overview || 'Keine Beschreibung verfügbar.')}</div></div>
+      ${nativeBannerAd()}
       ${trailerBlock(videos)}
       ${castGrid(credits)}
+      ${sideBannerAd()}
       ${movieJsonLd(data, `${SITE_URL}/movie/${id}/${encodeURIComponent(correctSlug)}`)}
     `;
-    res.send(layout({ headHtml: head({ title: data.title, url: `${SITE_URL}/movie/${id}/${correctSlug}`, image: img(data.backdrop_path, 'w780') }), bodyHtml, activeTab: 'movie' }));
+    res.send(layout({ headHtml, bodyHtml, activeTab: 'movie' }));
   } catch (e) { res.status(404).send('Not Found'); }
 });
 
+// ---------- DETAIL PAGES (TV) ----------
 app.get('/tv/:id/:slug?', async (req, res) => {
   const { id } = req.params;
   try {
@@ -131,16 +151,31 @@ app.get('/tv/:id/:slug?', async (req, res) => {
     const correctSlug = slugify(data.name);
     if (req.params.slug !== correctSlug) return res.redirect(301, `/tv/${id}/${encodeURIComponent(correctSlug)}`);
 
+    const headHtml = head({
+        title: `${data.name} (${(data.first_air_date || '').slice(0,4)}) Serie Deutsch Stream`,
+        description: data.overview || DEFAULT_DESC,
+        url: `${SITE_URL}/tv/${id}/${correctSlug}`,
+        image: img(data.backdrop_path || data.poster_path, 'w780')
+    });
+
     const bodyHtml = `
       <a class="back-btn" href="/tv">← Zurück</a>
-      <div class="detail-hero"><h1 class="detail-title">${escapeHtml(data.name)}</h1></div>
+      <div class="detail-hero">
+        <div class="hero-bg" style="background-image:url('${img(data.backdrop_path, 'original')}')"></div>
+        <div class="hero-fade"></div>
+        <div class="detail-info">
+            <h1 class="detail-title">${escapeHtml(data.name)}</h1>
+        </div>
+      </div>
       ${mockPlayerBlock(data.backdrop_path || data.poster_path, data.name)}
-      <div class="section-block"><h3>Handlung</h3><div>${escapeHtml(data.overview)}</div></div>
+      <div class="section-block"><h3>Handlung</h3><div class="bio-text">${escapeHtml(data.overview || 'Keine Beschreibung verfügbar.')}</div></div>
+      ${nativeBannerAd()}
       ${trailerBlock(videos)}
       ${castGrid(credits)}
+      ${sideBannerAd()}
       ${tvJsonLd(data, `${SITE_URL}/tv/${id}/${encodeURIComponent(correctSlug)}`)}
     `;
-    res.send(layout({ headHtml: head({ title: data.name, url: `${SITE_URL}/tv/${id}/${correctSlug}`, image: img(data.backdrop_path, 'w780') }), bodyHtml, activeTab: 'tv' }));
+    res.send(layout({ headHtml, bodyHtml, activeTab: 'tv' }));
   } catch (e) { res.status(404).send('Not Found'); }
 });
 
@@ -186,5 +221,5 @@ app.get('/robots.txt', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`CineBox Server running on: http://localhost:${PORT}`);
+  console.log(`CineBox-DE Server running on: ${SITE_URL}`);
 });

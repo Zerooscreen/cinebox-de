@@ -88,14 +88,15 @@ app.get('/tv', (req, res) => renderHome(req, res, 'tv'));
 app.get('/movie/:id/:slug?', async (req, res) => {
   const { id } = req.params;
   try {
-    const [data, credits, videos, similar] = await Promise.all([
-      tmdb(`/movie/${id}`),
+    console.log(`Mencoba mengambil data untuk movie ID: ${id}`);
+    const data = await tmdb(`/movie/${id}`);
+    console.log(`Berhasil mendapatkan data film:`, data.title);
+
+    const [credits, videos, similar] = await Promise.all([
       tmdb(`/movie/${id}/credits`).catch(() => ({ cast: [], crew: [] })),
       tmdb(`/movie/${id}/videos`).catch(() => ({ results: [] })),
       tmdb(`/movie/${id}/similar`).catch(() => ({ results: [] })),
     ]);
-    
-    if (!data || !data.id) throw new Error('Movie not found');
 
     const runtime = data.runtime ? `${Math.floor(data.runtime / 60)} Std. ${data.runtime % 60} Min.` : 'Keine Daten';
     const correctSlug = slugify(data.title) || 'film';
@@ -140,9 +141,10 @@ app.get('/movie/:id/:slug?', async (req, res) => {
 
     res.send(layout({ headHtml, bodyHtml, activeTab: 'movie' }));
   } catch (e) {
+    console.error(`ERROR pada movie ID ${id}:`, e.message);
     res.status(404).send(layout({
       headHtml: head({ title: 'Film nicht gefunden', description: DEFAULT_DESC, url: `${SITE_URL}/movie/${id}`, robots: 'noindex, nofollow' }),
-      bodyHtml: `<a class="back-btn" href="/movie">← Zurück</a><div class="empty">Dieser Film wurde nicht gefunden.</div>`,
+      bodyHtml: `<a class="back-btn" href="/movie">← Zurück</a><div class="empty">Dieser Film wurde nicht gefunden. (Error: ${escapeHtml(e.message)})</div>`,
       activeTab: 'movie',
     }));
   }

@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { tmdb, img, slugify } = require('./lib/tmdb');
-const { head, layout, posterCard, genreRow, watchButtonBlock, trailerBlock, castGrid, similarGrid, escapeHtml, movieJsonLd, tvJsonLd, banner728x90, banner468x60, nativeBannerAd, detailTitle, DEFAULT_TITLE, DEFAULT_DESC, SITE_NAME } = require('./lib/render');
+const { head, layout, posterCard, genreRow, watchButtonBlock, trailerBlock, castGrid, similarGrid, escapeHtml, movieJsonLd, tvJsonLd, personJsonLd, banner728x90, banner468x60, nativeBannerAd, detailTitle, DEFAULT_TITLE, DEFAULT_DESC, SITE_NAME } = require('./lib/render');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -227,6 +227,58 @@ app.get('/tv/:id/:slug?', async (req, res) => {
       headHtml: head({ title: 'Serie nicht gefunden', description: DEFAULT_DESC, url: `${SITE_URL}/tv/${id}`, robots: 'noindex, nofollow' }),
       bodyHtml: `<a class="back-btn" href="/tv">← Zurück</a><div class="empty">Diese Serie wurde nicht gefunden.</div>`,
       activeTab: 'tv',
+    }));
+  }
+});
+
+app.get('/person/:id/:slug?', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [person, credits] = await Promise.all([
+      tmdb(`/person/${id}`),
+      tmdb(`/person/${id}/movie_credits`).catch(() => ({ cast: [] })),
+    ]);
+
+    if (!person || !person.id) throw new Error('Person not found');
+
+    const correctSlug = slugify(person.name) || 'actor';
+    const movies = (credits.cast || []).sort((a, b) => new Date(b.release_date || '1970') - new Date(a.release_date || '1970'));
+    const cards = movies.map(item => posterCard(item, 'movie')).join('');
+
+    const bodyHtml = `
+      <a class="back-btn" href="javascript:history.back()">← Zurück</a>
+      <div class="person-profile-header">
+        <img class="person-img" src="${img(person.profile_path, 'h632')}" alt="${escapeHtml(person.name)}">
+        <div class="person-details">
+          <div class="detail-eyebrow">Schauspieler</div>
+          <h1 class="detail-title">${escapeHtml(person.name)}</h1>
+          <div class="detail-meta">
+            ${person.birthday ? `<span class="m-item">Geboren: ${person.birthday}</span>` : ''}
+            ${person.place_of_birth ? `<span class="m-item">${escapeHtml(person.place_of_birth)}</span>` : ''}
+          </div>
+          <div class="bio-text" style="margin-top: 20px;">${escapeHtml(person.biography || 'Keine Biografie verfügbar.')}</div>
+        </div>
+      </div>
+      <div class="section-block">
+        <h3>Bekannt aus</h3>
+        <div class="grid">${cards || '<div class="empty">Keine Filme gefunden</div>'}</div>
+      </div>
+      ${personJsonLd(person, `${SITE_URL}/person/${id}/${encodeURIComponent(correctSlug)}`)}
+    `;
+
+    const headHtml = head({
+      title: `${person.name} - Filme, Biografie & Steckbrief`,
+      description: (person.biography || `Entdecken Sie Filme und Steckbrief von ${person.name}`).slice(0, 160),
+      url: `${SITE_URL}/person/${id}/${encodeURIComponent(correctSlug)}`,
+      image: img(person.profile_path, 'w780'),
+    });
+
+    res.send(layout({ headHtml, bodyHtml, activeTab: 'movie' }));
+  } catch (e) {
+    res.status(404).send(layout({
+      headHtml: head({ title: 'Person nicht gefunden', description: DEFAULT_DESC, url: `${SITE_URL}/person/${id}`, robots: 'noindex, nofollow' }),
+      bodyHtml: `<a class="back-btn" href="javascript:history.back()">← Zurück</a><div class="empty">Diese Person wurde nicht gefunden.</div>`,
+      activeTab: 'movie',
     }));
   }
 });
